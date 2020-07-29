@@ -1,0 +1,137 @@
+proc celldef() {
+  topol()
+  subsets()
+  geom()
+  biophys()
+  geom_nseg()
+}
+
+create soma, axon
+
+proc topol() { local i
+  connect axon(0), soma(1)
+  basic_shape()
+}
+proc basic_shape() {
+  soma {pt3dclear() pt3dadd(0, 0, 0, 1) pt3dadd(15, 0, 0, 1)}
+  axon {pt3dclear() pt3dadd(15, 0, 0, 1) pt3dadd(120, 0, 0, 1)}
+}
+
+objref all
+proc subsets() { local i
+  objref all
+  all = new SectionList()
+    soma all.append()
+    axon all.append()
+
+}
+proc geom() {
+  forsec all {  }
+   soma.L = 150
+   axon.L =	8000		//40000
+   soma.diam = 6
+   axon.diam = 12
+  soma {  }
+  axon {  }
+}
+proc geom_nseg() {
+   soma { nseg = 15 }
+   axon { nseg = 800 }		// 4000
+}
+proc biophys() {
+  forsec all {
+    Ra = 28
+  }
+  soma {
+    insert hhsoma
+      gnabar_hhsoma = 0.48
+      gkbar_hhsoma = 1.088
+      gl_hhsoma = 0.0016
+      el_hhsoma = -60
+
+  }
+  axon {
+    insert hhaxon
+      gnabar_hhaxon = 0.48
+      gkbar_hhaxon = 1.088
+      gl_hhaxon = 0.0016
+      el_hhaxon = -60
+	  q10m_hhaxon = 1
+	  q10h_hhaxon = 1
+      q10n_hhaxon = 1
+  }
+}
+access axon
+
+celldef()
+load_file("40ms.ses")
+
+objectvar stim
+soma stim = new IClamp(0.5)
+stim.del = 10
+stim.dur = 1
+stim.amp = 17
+
+
+
+objref rec, rec2, rec3, rec4, rec5, rec6, rec7, rec8, rec8, rec9, nil
+objref APtim, APtim2, APtim3, APtim4, APtim5, APtim6, APtim7, APtim8, APtim9
+objref spkid, spkid2, spkid3, spkid4, spkid5, spkid6, spkid7, spkid8, spkid9
+objref savefreq, savefreq2, savefreq3, savefreq4, savefreq5, savefreq6, savefreq7, savefreq8, savefreq9
+objref	ascifile, f1
+
+ascifile = new Vector()
+
+
+f1 = new File()
+f1.ropen("q10s.txt")
+ascifile.scanf(f1)
+
+
+savefreq = new File()				//creates an output file where things can be saved
+
+
+
+	for l=0, 4096 {
+		axon.q10n_hhaxon = ascifile.x[(7*l)]		//changes the Potassium gate tau value by 1/q10
+		axon.q10m_hhaxon = ascifile.x[(7*l)+1]		//change the sodium ma dn h gates by 1/q10
+		axon.q10h_hhaxon = ascifile.x[(7*l)+2]
+		axon.gnabar_hhaxon = ascifile.x[(7*l)+3]*0.48	//changes the sodium conductance
+		axon.gkbar_hhaxon = ascifile.x[(7*l)+4]*1.088		//changes the potassium conductance 
+    	axon.gl_hhaxon = ascifile.x[(7*l)+5]*0.0016			//changes the leak channel conductance 
+
+
+		axon rec = new NetCon(&v(0.125), nil, 0, 1, 0)		//watches axon at 0.1cm
+		axon rec2 = new NetCon(&v(.625), nil, 0, 1, 0)	//watches axon at .5cm
+
+
+		APtim = new Vector()				//vector to record netcon into
+		APtim2 = new Vector()				//vector to record netcon into
+	
+
+		spkid = new Vector()				//vector to hold the spike number identification
+		spkid2 = new Vector()				//vector to hold the spike number identification
+
+
+		rec.record(APtim, spkid)			//puts the values of APtim and spkid into the network connection (netcon) SOOOO rec contains AP time and spike id at axon = 0.75
+		rec2.record(APtim2, spkid2)			//puts the values of APtim and spkid into the second network connection SOOOO rec2 contains the AP time and spike id numbers at axon = 0.5
+
+		savefreq = new File()				//creates new file to save data to
+		savefreq2 = new File()				//creates new file to save data to
+		savefreq3 = new File()				//creates new file to save data to
+	
+		savefreq.aopen("Arrival_time_and_counter.dat")//opens new file
+
+
+		run()
+
+		APtim.resize(3)
+		APtim2.resize(3)
+			
+		savefreq.printf("%g\t%g\t%g\t%g\t%g\n", APtim.x(0), APtim.x(1), APtim2.x(0), APtim2.x(1), ascifile.x[(7*l)+6])
+
+		savefreq.close()
+
+
+	}
+

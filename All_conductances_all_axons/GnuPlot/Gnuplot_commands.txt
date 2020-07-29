@@ -1,0 +1,16 @@
+set term postscript color
+set cbr [-34:32]
+set palette defined (-34 "black", -33.5 "red", 0 "yellow",  30.5 "navy")
+set output "05_delay_between_neurons_multiplot.ps"
+plot "05_delay_between_neurons_d12t5.txt" w image
+plot "05_delay_between_neurons_d12t15.txt" w image
+plot "05_delay_between_neurons_d12t20.txt" w image
+plot "05_delay_between_neurons_d12t25.txt" w image 
+plot "05_delay_between_neurons_d12t30.txt" w image
+plot "05_delay_between_neurons_d6t5.txt" w image
+plot "05_delay_between_neurons_d6t15.txt" w image
+plot "05_delay_between_neurons_d6t20.txt" w image
+plot "05_delay_between_neurons_d6t25.txt" w image 
+plot "05_delay_between_neurons_d6t30.txt" w image
+set output "new.ps"
+set terminal win

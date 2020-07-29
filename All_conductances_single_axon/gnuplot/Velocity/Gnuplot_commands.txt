@@ -1,0 +1,8 @@
+set cbr [0.0:5.5]
+set palette defined (0 "black", 0.3 "blue", 1.5 "dark-green", 2.5 "yellow", 5.5 "red")
+set output "01_multiplot_velocity.ps"
+plot "01_velocity_d3t5.txt" w image
+plot "01_velocity_d3t15.txt" w image
+plot "01_velocity_d3t20.txt" w image
+plot "01_velocity_d3t25.txt" w image 
+plot "01_velocity_d3t30.txt" w image 
